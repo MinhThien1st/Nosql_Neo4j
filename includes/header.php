@@ -1,8 +1,8 @@
 <?php
 /**
  * ==============================================================================
- * ĐỒ ÁN MÔN NOSQL (NEO4J) - NHÓM 9
- * File: includes/header.php - Thanh điều hướng & trạng thái hệ thống
+ * GEOQUADRILATERAL - NHÓM 9
+ * File: includes/header.php - Thanh điều hướng Nhánh Main (Nền tảng khởi tạo)
  * ==============================================================================
  */
 
@@ -18,7 +18,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= APP_NAME ?> - Hệ Thống Học Toán Hình Học Tứ Giác</title>
+    <title><?= APP_NAME ?> - Hệ Thống Học Toán Hình Học Tứ GiAC</title>
     
     <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,18 +53,6 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </li>
             <li class="nav-item <?= ($currentPage == 'shapes.php') ? 'active' : '' ?>">
                 <a href="shapes.php">Danh Mục Hình</a>
-            </li>
-            <li class="nav-item <?= ($currentPage == 'transformer.php') ? 'active' : '' ?>">
-                <a href="transformer.php">Chuyển Hóa Hình Học</a>
-            </li>
-            <li class="nav-item <?= ($currentPage == 'calculator.php') ? 'active' : '' ?>">
-                <a href="calculator.php">Công Cụ Tính Toán</a>
-            </li>
-            <li class="nav-item <?= ($currentPage == 'compare.php') ? 'active' : '' ?>">
-                <a href="compare.php">So Sánh Hình</a>
-            </li>
-            <li class="nav-item <?= ($currentPage == 'quiz.php') ? 'active' : '' ?>">
-                <a href="quiz.php">Quiz Test</a>
             </li>
         </ul>
     </div>

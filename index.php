@@ -29,13 +29,9 @@ $model = new GeometryModel();
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                     Xem Sơ Đồ Đồ Thị
                 </a>
-                <a href="transformer.php" class="btn btn-outline-white">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
-                    Chuyển Hóa Hình Học
-                </a>
-                <a href="quiz.php" class="btn btn-accent">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    Làm Bài Quiz Test
+                <a href="shapes.php" class="btn btn-outline-white">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+                    Khám Phá Danh Mục Hình
                 </a>
             </div>
         </div>
@@ -84,39 +80,20 @@ $model = new GeometryModel();
         </div>
     </section>
 
-    <!-- Khám Phá Nhanh Các Tính Năng -->
+    <!-- Khám Phá Nhanh Danh Mục Hình Học -->
     <section style="margin-bottom: 20px;">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
-            <a href="shapes.php" style="background:white;border-radius:14px;padding:22px;border:1px solid var(--border-light);text-decoration:none;color:inherit;transition:var(--transition);display:block;" onmouseover="this.style.borderColor='var(--primary)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
-                <div style="width:40px;height:40px;background:#EFF6FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#2563EB;margin-bottom:14px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
+        <div style="background:white;border-radius:14px;padding:26px 32px;border:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+            <div style="display:flex;align-items:center;gap:18px;">
+                <div style="width:48px;height:48px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#2563EB;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10"/></svg>
                 </div>
-                <h3 style="font-weight:800;margin-bottom:6px;font-size:1.1rem;color:var(--text-strong);">Danh Mục Hình Học</h3>
-                <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;">Khám phá toàn bộ 9 hình tứ giác với hình vẽ vector sắc nét, định nghĩa và công thức chuẩn.</p>
-            </a>
-
-            <a href="transformer.php" style="background:white;border-radius:14px;padding:22px;border:1px solid var(--border-light);text-decoration:none;color:inherit;transition:var(--transition);display:block;" onmouseover="this.style.borderColor='var(--primary)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
-                <div style="width:40px;height:40px;background:#F5F3FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4F46E5;margin-bottom:14px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                <div>
+                    <h3 style="font-weight:800;font-size:1.15rem;color:var(--text-strong);margin-bottom:2px;">Kho Tàng Các Hình Tứ Giác</h3>
+                    <p style="font-size:0.9rem;color:var(--text-muted);margin:0;">Xem danh mục 9 loại hình học phẳng với hình vẽ vector trực quan và định nghĩa chuẩn xác.</p>
                 </div>
-                <h3 style="font-weight:800;margin-bottom:6px;font-size:1.1rem;color:var(--text-strong);">Chuyển Hóa Hình Học</h3>
-                <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;">Tra cứu con đường chuyển đổi ngắn nhất giữa 2 hình học bất kỳ bằng thuật toán Graph Traversal.</p>
-            </a>
-
-            <a href="calculator.php" style="background:white;border-radius:14px;padding:22px;border:1px solid var(--border-light);text-decoration:none;color:inherit;transition:var(--transition);display:block;" onmouseover="this.style.borderColor='var(--primary)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
-                <div style="width:40px;height:40px;background:#ECFDF5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#059669;margin-bottom:14px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="18"/><path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/></svg>
-                </div>
-                <h3 style="font-weight:800;margin-bottom:6px;font-size:1.1rem;color:var(--text-strong);">Công Cụ Tính Toán</h3>
-                <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;">Nhập số đo kích thước, hình vẽ SVG biến đổi thời gian thực và tự động giải từng bước cụ thể.</p>
-            </a>
-
-            <a href="quiz.php" style="background:white;border-radius:14px;padding:22px;border:1px solid var(--border-light);text-decoration:none;color:inherit;transition:var(--transition);display:block;" onmouseover="this.style.borderColor='var(--primary)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.borderColor='var(--border-light)';this.style.boxShadow='none'">
-                <div style="width:40px;height:40px;background:#FDF2F8;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#DB2777;margin-bottom:14px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                </div>
-                <h3 style="font-weight:800;margin-bottom:6px;font-size:1.1rem;color:var(--text-strong);">Quiz Test</h3>
-                <p style="font-size:0.88rem;color:var(--text-muted);line-height:1.5;">Kiểm tra mức độ am hiểu hình học qua các câu hỏi nhận diện và công thức trắc nghiệm.</p>
+            </div>
+            <a href="shapes.php" class="btn btn-primary" style="padding:10px 22px;">
+                Xem Danh Mục Hình ➔
             </a>
         </div>
     </section>

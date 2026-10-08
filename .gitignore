@@ -19,3 +19,7 @@ Desktop.ini
 
 # Logs
 *.log
+
+# Member distribution packages
+packages_for_members/
+*.zip

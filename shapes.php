@@ -75,14 +75,10 @@ $shapes = $model->getAllShapes();
                 </div>
 
                 <div class="shape-card-actions">
-                    <a href="calculator.php?shape=<?= urlencode($shape['id']) ?>" class="btn-card btn-card-calc">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/></svg>
-                        Tính toán
-                    </a>
-                    <a href="compare.php?s1=<?= urlencode($shape['id']) ?>" class="btn-card btn-card-primary">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 18 18M3 21h18"/></svg>
-                        So sánh
-                    </a>
+                    <button onclick="speakText('<?= addslashes($shape['name'] . '. ' . $shape['definition']) ?>')" class="btn-card btn-card-primary" style="width:100%;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+                        Nghe Đọc Định Nghĩa
+                    </button>
                 </div>
             </div>
         <?php endforeach; ?>
