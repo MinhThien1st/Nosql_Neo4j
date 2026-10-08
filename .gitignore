@@ -1,0 +1,21 @@
+# Composer
+vendor/
+composer.phar
+
+# Environment & Config overrides
+.env
+.env.local
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log
