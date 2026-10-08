@@ -2,7 +2,7 @@
 /**
  * ==============================================================================
  * GEOQUADRILATERAL - NHÓM 9
- * File: includes/header.php - Thanh điều hướng Nhánh Main (Nền tảng khởi tạo)
+ * File: includes/header.php - Thanh điều hướng (Bao gồm phần của Member 2)
  * ==============================================================================
  */
 
@@ -18,7 +18,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= APP_NAME ?> - Hệ Thống Học Toán Hình Học Tứ GiAC</title>
+    <title><?= APP_NAME ?> - Hệ Thống Học Toán Hình Học Tứ Giác</title>
     
     <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -53,6 +53,12 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             </li>
             <li class="nav-item <?= ($currentPage == 'shapes.php') ? 'active' : '' ?>">
                 <a href="shapes.php">Danh Mục Hình</a>
+            </li>
+            <li class="nav-item <?= ($currentPage == 'calculator.php') ? 'active' : '' ?>">
+                <a href="calculator.php">Công Cụ Tính Toán</a>
+            </li>
+            <li class="nav-item <?= ($currentPage == 'compare.php') ? 'active' : '' ?>">
+                <a href="compare.php">So Sánh Hình</a>
             </li>
         </ul>
     </div>
