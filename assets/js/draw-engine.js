@@ -168,12 +168,12 @@ class QuadrilateralDrawingLab {
             gridSize: 25 // 25 pixel = đúng 1.0 cm
         };
 
-        // Điểm A, B, C, D (Thứ tự kim đồng hồ)
+        // Điểm A, B, C, D (Thứ tự kim đồng hồ - chuẩn khớp mắt lưới ô ly 25px)
         this.vertices = [
-            { id: 'A', x: 260, y: 140, label: 'A', color: '#EF4444' },
-            { id: 'B', x: 480, y: 140, label: 'B', color: '#3B82F6' },
-            { id: 'C', x: 480, y: 360, label: 'C', color: '#10B981' },
-            { id: 'D', x: 260, y: 360, label: 'D', color: '#F59E0B' }
+            { id: 'A', x: 250, y: 150, label: 'A', color: '#EF4444' },
+            { id: 'B', x: 500, y: 150, label: 'B', color: '#3B82F6' },
+            { id: 'C', x: 500, y: 350, label: 'C', color: '#10B981' },
+            { id: 'D', x: 250, y: 350, label: 'D', color: '#F59E0B' }
         ];
 
         // Tương tác chuột / chạm
@@ -344,89 +344,283 @@ class QuadrilateralDrawingLab {
 
         // Đang kéo thả
         if (this.dragMode === 'vertex') {
-            let targetX = pos.x - this.dragOffset.x;
-            let targetY = pos.y - this.dragOffset.y;
+            const rawX = pos.x - this.dragOffset.x;
+            const rawY = pos.y - this.dragOffset.y;
+            const sz = this.options.gridSize; // 25px = 1.0cm (Đường grid ô ly chính)
 
-            // Xử lý Shift: Khóa thẳng hàng ngang, dọc hoặc 45 độ so với đỉnh liền kề
+            let targetX, targetY;
+
             if (isShift) {
+                // Tọa độ làm tròn sơ bộ theo mắt lưới ô ly chính
+                const gridX = Math.round(rawX / sz) * sz;
+                const gridY = Math.round(rawY / sz) * sz;
                 const i = this.dragTargetIndex;
+                const curr = this.vertices[i];
                 const prev = this.vertices[(i + 3) % 4];
                 const next = this.vertices[(i + 1) % 4];
+                const opp = this.vertices[(i + 2) % 4];
 
-                const dyPrev = targetY - prev.y;
-                const dxPrev = targetX - prev.x;
-                const dyNext = targetY - next.y;
-                const dxNext = targetX - next.x;
+                const candidates = [];
 
-                let locked = false;
-
-                // 1. Khóa thẳng hàng ngang (y bằng nhau -> cạnh nằm ngang tuyệt đối 0°)
-                if (Math.abs(dyPrev) <= 32) {
-                    targetY = prev.y;
-                    this.activeGuide = { type: 'horizontal', y: prev.y, label: `Thẳng ngang với đỉnh ${prev.label} (0°)` };
-                    locked = true;
-                } else if (Math.abs(dyNext) <= 32) {
-                    targetY = next.y;
-                    this.activeGuide = { type: 'horizontal', y: next.y, label: `Thẳng ngang với đỉnh ${next.label} (0°)` };
-                    locked = true;
-                }
-
-                // 2. Khóa thẳng hàng dọc (x bằng nhau -> cạnh dựng đứng tuyệt đối 90°)
-                if (Math.abs(dxPrev) <= 32) {
-                    targetX = prev.x;
-                    this.activeGuide = { type: 'vertical', x: prev.x, label: `Thẳng dọc với đỉnh ${prev.label} (90°)` };
-                    locked = true;
-                } else if (Math.abs(dxNext) <= 32) {
-                    targetX = next.x;
-                    this.activeGuide = { type: 'vertical', x: next.x, label: `Thẳng dọc với đỉnh ${next.label} (90°)` };
-                    locked = true;
-                }
-
-                // 3. Khóa góc chéo 45° so với đỉnh trước đó nếu chưa khóa ngang/dọc
-                if (!locked) {
-                    const distPrev = Math.hypot(dxPrev, dyPrev);
-                    if (distPrev > 15) {
-                        const rawAng = Math.atan2(dyPrev, dxPrev);
-                        const step = Math.PI / 4; // 45 độ
-                        const snapAng = Math.round(rawAng / step) * step;
-                        targetX = prev.x + distPrev * Math.cos(snapAng);
-                        targetY = prev.y + distPrev * Math.sin(snapAng);
-                        const deg = Math.round((snapAng * 180 / Math.PI + 360) % 360);
-                        this.activeGuide = {
-                            type: 'angle',
-                            x1: prev.x, y1: prev.y,
-                            x2: targetX, y2: targetY,
-                            label: `Góc chéo ${deg}° với đỉnh ${prev.label}`
-                        };
+                // -----------------------------------------------------------------
+                // 1. KHÓA VUÔNG GÓC (Perpendicular - 90°)
+                // -----------------------------------------------------------------
+                // 1.1. Góc vuông 90° tại đỉnh đang kéo: (prev - Vi) ⊥ (Vi - next)
+                // Kiểu 1: prev ngang tới Vi (y = prev.y), Vi dọc tới next (x = next.x)
+                {
+                    const cx = next.x, cy = prev.y;
+                    const dist = Math.hypot(rawX - cx, rawY - cy);
+                    if (dist <= 55) {
+                        candidates.push({
+                            x: cx, y: cy, dist,
+                            guide: {
+                                type: 'perpendicular',
+                                subtype: 'corner',
+                                x: cx, y: cy,
+                                label: `Góc vuông 90° tại đỉnh ${curr.label}`
+                            }
+                        });
                     }
+                }
+                // Kiểu 2: prev dọc tới Vi (x = prev.x), Vi ngang tới next (y = next.y)
+                {
+                    const cx = prev.x, cy = next.y;
+                    const dist = Math.hypot(rawX - cx, rawY - cy);
+                    if (dist <= 55) {
+                        candidates.push({
+                            x: cx, y: cy, dist,
+                            guide: {
+                                type: 'perpendicular',
+                                subtype: 'corner',
+                                x: cx, y: cy,
+                                label: `Góc vuông 90° tại đỉnh ${curr.label}`
+                            }
+                        });
+                    }
+                }
+
+                // 1.2. Khóa đường ngang / dọc theo đường ô ly (Vuông góc với trục đối diện)
+                // - Cạnh nối với prev nằm ngang trên đường ô ly (y = prev.y)
+                {
+                    const dist = Math.abs(rawY - prev.y);
+                    if (dist <= 42) {
+                        candidates.push({
+                            x: gridX, y: prev.y, dist,
+                            guide: {
+                                type: 'perpendicular',
+                                subtype: 'horizontal',
+                                y: prev.y,
+                                label: `Vuông góc 90° (Cạnh ${prev.label}${curr.label} nằm ngang)`
+                            }
+                        });
+                    }
+                }
+                // - Cạnh nối với next nằm ngang trên đường ô ly (y = next.y)
+                {
+                    const dist = Math.abs(rawY - next.y);
+                    if (dist <= 42) {
+                        candidates.push({
+                            x: gridX, y: next.y, dist,
+                            guide: {
+                                type: 'perpendicular',
+                                subtype: 'horizontal',
+                                y: next.y,
+                                label: `Vuông góc 90° (Cạnh ${curr.label}${next.label} nằm ngang)`
+                            }
+                        });
+                    }
+                }
+                // - Cạnh nối với prev thẳng đứng trên đường ô ly (x = prev.x)
+                {
+                    const dist = Math.abs(rawX - prev.x);
+                    if (dist <= 42) {
+                        candidates.push({
+                            x: prev.x, y: gridY, dist,
+                            guide: {
+                                type: 'perpendicular',
+                                subtype: 'vertical',
+                                x: prev.x,
+                                label: `Vuông góc 90° (Cạnh ${prev.label}${curr.label} thẳng đứng)`
+                            }
+                        });
+                    }
+                }
+                // - Cạnh nối với next thẳng đứng trên đường ô ly (x = next.x)
+                {
+                    const dist = Math.abs(rawX - next.x);
+                    if (dist <= 42) {
+                        candidates.push({
+                            x: next.x, y: gridY, dist,
+                            guide: {
+                                type: 'perpendicular',
+                                subtype: 'vertical',
+                                x: next.x,
+                                label: `Vuông góc 90° (Cạnh ${curr.label}${next.label} thẳng đứng)`
+                            }
+                        });
+                    }
+                }
+
+                // -----------------------------------------------------------------
+                // 2. KHÓA SONG SONG (Parallel - 2 đường thẳng song song)
+                // -----------------------------------------------------------------
+                // 2.1. Cạnh (prev, Vi) song song với cạnh đối diện (opp, next)
+                const dxOpp1 = opp.x - next.x;
+                const dyOpp1 = opp.y - next.y;
+
+                if (dyOpp1 === 0) {
+                    // Cạnh đối diện nằm ngang -> Khóa cạnh prev-Vi nằm ngang song song
+                    const dist = Math.abs(rawY - prev.y);
+                    if (dist <= 50) {
+                        candidates.push({
+                            x: gridX, y: prev.y, dist: dist * 0.9,
+                            guide: {
+                                type: 'parallel',
+                                subtype: 'horizontal',
+                                y1: prev.y, y2: next.y,
+                                label: `Song song: ${prev.label}${curr.label} // ${opp.label}${next.label}`
+                            }
+                        });
+                    }
+                } else if (dxOpp1 === 0) {
+                    // Cạnh đối diện thẳng đứng -> Khóa cạnh prev-Vi thẳng đứng song song
+                    const dist = Math.abs(rawX - prev.x);
+                    if (dist <= 50) {
+                        candidates.push({
+                            x: prev.x, y: gridY, dist: dist * 0.9,
+                            guide: {
+                                type: 'parallel',
+                                subtype: 'vertical',
+                                x1: prev.x, x2: next.x,
+                                label: `Song song: ${prev.label}${curr.label} // ${opp.label}${next.label}`
+                            }
+                        });
+                    }
+                } else {
+                    // Cạnh đối diện xiên -> Khóa điểm tạo thành hình bình hành song song
+                    const pbhX = prev.x + (next.x - opp.x);
+                    const pbhY = prev.y + (next.y - opp.y);
+                    const distPBH = Math.hypot(rawX - pbhX, rawY - pbhY);
+                    if (distPBH <= 50) {
+                        candidates.push({
+                            x: pbhX, y: pbhY, dist: distPBH * 0.85,
+                            guide: {
+                                type: 'parallel',
+                                subtype: 'slanted',
+                                x1: prev.x, y1: prev.y, x2: pbhX, y2: pbhY,
+                                refX1: next.x, refY1: next.y, refX2: opp.x, refY2: opp.y,
+                                label: `Song song: ${prev.label}${curr.label} // ${opp.label}${next.label}`
+                            }
+                        });
+                    }
+                }
+
+                // 2.2. Cạnh (Vi, next) song song với cạnh đối diện (opp, prev)
+                const dxOpp2 = opp.x - prev.x;
+                const dyOpp2 = opp.y - prev.y;
+
+                if (dyOpp2 === 0) {
+                    const dist = Math.abs(rawY - next.y);
+                    if (dist <= 50) {
+                        candidates.push({
+                            x: gridX, y: next.y, dist: dist * 0.9,
+                            guide: {
+                                type: 'parallel',
+                                subtype: 'horizontal',
+                                y1: next.y, y2: prev.y,
+                                label: `Song song: ${curr.label}${next.label} // ${opp.label}${prev.label}`
+                            }
+                        });
+                    }
+                } else if (dxOpp2 === 0) {
+                    const dist = Math.abs(rawX - next.x);
+                    if (dist <= 50) {
+                        candidates.push({
+                            x: next.x, y: gridY, dist: dist * 0.9,
+                            guide: {
+                                type: 'parallel',
+                                subtype: 'vertical',
+                                x1: next.x, x2: prev.x,
+                                label: `Song song: ${curr.label}${next.label} // ${opp.label}${prev.label}`
+                            }
+                        });
+                    }
+                } else {
+                    const pbhX2 = next.x - (opp.x - prev.x);
+                    const pbhY2 = next.y - (opp.y - prev.y);
+                    const distPBH2 = Math.hypot(rawX - pbhX2, rawY - pbhY2);
+                    if (distPBH2 <= 50) {
+                        candidates.push({
+                            x: pbhX2, y: pbhY2, dist: distPBH2 * 0.85,
+                            guide: {
+                                type: 'parallel',
+                                subtype: 'slanted',
+                                x1: pbhX2, y1: pbhY2, x2: next.x, y2: next.y,
+                                refX1: prev.x, refY1: prev.y, refX2: opp.x, refY2: opp.y,
+                                label: `Song song: ${curr.label}${next.label} // ${opp.label}${prev.label}`
+                            }
+                        });
+                    }
+                }
+
+                if (candidates.length > 0) {
+                    candidates.sort((a, b) => a.dist - b.dist);
+                    const best = candidates[0];
+                    targetX = Math.round(best.x / sz) * sz;
+                    targetY = Math.round(best.y / sz) * sz;
+                    this.activeGuide = best.guide;
+                } else {
+                    // Nếu chưa rơi vào vùng song song hoặc vuông góc:
+                    // Tự động hút CHẶT vào giao điểm ô ly chính gần nhất (trùng đường grid chính 100%)
+                    targetX = gridX;
+                    targetY = gridY;
+                    this.activeGuide = {
+                        type: 'grid',
+                        x: gridX,
+                        y: gridY,
+                        label: 'Trùng đường ô ly chính (1.0 cm)'
+                    };
                 }
             } else {
                 this.activeGuide = null;
+                if (this.options.gridSnap) {
+                    targetX = Math.round(rawX / sz) * sz;
+                    targetY = Math.round(rawY / sz) * sz;
+                } else {
+                    targetX = rawX;
+                    targetY = rawY;
+                }
             }
 
-            if (this.options.gridSnap) {
-                targetX = Math.round(targetX / this.options.gridSize) * this.options.gridSize;
-                targetY = Math.round(targetY / this.options.gridSize) * this.options.gridSize;
-            }
-
-            // Giới hạn biên canvas
-            targetX = Math.max(30, Math.min(this.width - 30, targetX));
-            targetY = Math.max(30, Math.min(this.height - 30, targetY));
+            // Giới hạn biên canvas và đảm bảo tọa độ luôn là bội số sz
+            targetX = Math.max(sz, Math.min(Math.floor((this.width - sz) / sz) * sz, targetX));
+            targetY = Math.max(sz, Math.min(Math.floor((this.height - sz) / sz) * sz, targetY));
 
             this.vertices[this.dragTargetIndex].x = targetX;
             this.vertices[this.dragTargetIndex].y = targetY;
         } else if (this.dragMode === 'edge') {
             let dx = pos.x - this.lastPos.x;
             let dy = pos.y - this.lastPos.y;
+            const sz = this.options.gridSize;
 
-            // Xử lý Shift khi kéo cạnh: Khóa di chuyển thuần ngang hoặc thuần dọc
+            // Xử lý Shift khi kéo cạnh: Khóa di chuyển thuần ngang hoặc thuần dọc trên đường ô ly
             if (isShift) {
                 if (Math.abs(dx) >= Math.abs(dy)) {
                     dy = 0;
-                    this.activeGuide = { type: 'horizontal', y: this.vertices[this.dragTargetIndex].y, label: 'Khóa tịnh tiến ngang' };
+                    this.activeGuide = {
+                        type: 'perpendicular',
+                        subtype: 'horizontal',
+                        y: this.vertices[this.dragTargetIndex].y,
+                        label: 'Khóa trượt ngang theo hàng ô ly'
+                    };
                 } else {
                     dx = 0;
-                    this.activeGuide = { type: 'vertical', x: this.vertices[this.dragTargetIndex].x, label: 'Khóa tịnh tiến dọc' };
+                    this.activeGuide = {
+                        type: 'perpendicular',
+                        subtype: 'vertical',
+                        x: this.vertices[this.dragTargetIndex].x,
+                        label: 'Khóa trượt dọc theo cột ô ly'
+                    };
                 }
             } else {
                 this.activeGuide = null;
@@ -437,10 +631,22 @@ class QuadrilateralDrawingLab {
             const i1 = this.dragTargetIndex;
             const i2 = (this.dragTargetIndex + 1) % 4;
 
-            this.vertices[i1].x = Math.max(20, Math.min(this.width - 20, this.vertices[i1].x + dx));
-            this.vertices[i1].y = Math.max(20, Math.min(this.height - 20, this.vertices[i1].y + dy));
-            this.vertices[i2].x = Math.max(20, Math.min(this.width - 20, this.vertices[i2].x + dx));
-            this.vertices[i2].y = Math.max(20, Math.min(this.height - 20, this.vertices[i2].y + dy));
+            let nx1 = this.vertices[i1].x + dx;
+            let ny1 = this.vertices[i1].y + dy;
+            let nx2 = this.vertices[i2].x + dx;
+            let ny2 = this.vertices[i2].y + dy;
+
+            if (isShift) {
+                nx1 = Math.round(nx1 / sz) * sz;
+                ny1 = Math.round(ny1 / sz) * sz;
+                nx2 = Math.round(nx2 / sz) * sz;
+                ny2 = Math.round(ny2 / sz) * sz;
+            }
+
+            this.vertices[i1].x = Math.max(sz, Math.min(this.width - sz, nx1));
+            this.vertices[i1].y = Math.max(sz, Math.min(this.height - sz, ny1));
+            this.vertices[i2].x = Math.max(sz, Math.min(this.width - sz, nx2));
+            this.vertices[i2].y = Math.max(sz, Math.min(this.height - sz, ny2));
         } else if (this.dragMode === 'body') {
             const dx = pos.x - this.lastPos.x;
             const dy = pos.y - this.lastPos.y;
@@ -693,51 +899,125 @@ class QuadrilateralDrawingLab {
 
     drawAlignmentGuide() {
         if (!this.activeGuide) return;
+        const g = this.activeGuide;
         this.ctx.save();
-        this.ctx.setLineDash([6, 4]);
-        this.ctx.lineWidth = 1.8;
-        this.ctx.strokeStyle = '#EF4444'; // Đỏ nổi bật báo hiệu đường thẳng khóa
 
-        if (this.activeGuide.type === 'horizontal') {
-            const y = this.activeGuide.y;
+        if (g.type === 'perpendicular') {
+            // Phong cách Vuông góc: Nét đứt màu đỏ tươi #DC2626
+            this.ctx.setLineDash([6, 4]);
+            this.ctx.lineWidth = 1.8;
+            this.ctx.strokeStyle = '#DC2626';
+
+            if (g.subtype === 'corner') {
+                // Góc vuông 90° tại đỉnh: Vẽ 2 đường gióng ngang và dọc cắt nhau
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, g.y);
+                this.ctx.lineTo(this.width, g.y);
+                this.ctx.moveTo(g.x, 0);
+                this.ctx.lineTo(g.x, this.height);
+                this.ctx.stroke();
+
+                // Vẽ ô vuông góc vuông 90° nhỏ tại (g.x, g.y)
+                this.drawSquareCornerMarker(g.x, g.y, 14);
+                this.drawGuideTag(`🔒 SHIFT: ${g.label} (Khớp ô ly)`, g.x + 14, g.y - 14, '#DC2626');
+            } else if (g.subtype === 'horizontal') {
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, g.y);
+                this.ctx.lineTo(this.width, g.y);
+                this.ctx.stroke();
+                this.drawGuideTag(`🔒 SHIFT: ${g.label} (Khớp ô ly)`, Math.max(20, Math.min(this.width - 280, 60)), g.y - 12, '#DC2626');
+            } else if (g.subtype === 'vertical') {
+                this.ctx.beginPath();
+                this.ctx.moveTo(g.x, 0);
+                this.ctx.lineTo(g.x, this.height);
+                this.ctx.stroke();
+                this.drawGuideTag(`🔒 SHIFT: ${g.label} (Khớp ô ly)`, g.x + 10, Math.max(24, Math.min(this.height - 30, 45)), '#DC2626');
+            }
+        } else if (g.type === 'parallel') {
+            // Phong cách Song song: 2 đường nét đứt màu xanh dương #2563EB
+            this.ctx.setLineDash([7, 4]);
+            this.ctx.lineWidth = 2.0;
+            this.ctx.strokeStyle = '#2563EB';
+
+            if (g.subtype === 'horizontal') {
+                // 2 đường thẳng song song ngang
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, g.y1);
+                this.ctx.lineTo(this.width, g.y1);
+                this.ctx.moveTo(0, g.y2);
+                this.ctx.lineTo(this.width, g.y2);
+                this.ctx.stroke();
+
+                const tagY = Math.min(g.y1, g.y2) - 12;
+                this.drawGuideTag(`🔒 SHIFT: ${g.label} (Khớp ô ly)`, Math.max(20, Math.min(this.width - 320, 60)), tagY, '#2563EB');
+            } else if (g.subtype === 'vertical') {
+                // 2 đường thẳng song song dọc
+                this.ctx.beginPath();
+                this.ctx.moveTo(g.x1, 0);
+                this.ctx.lineTo(g.x1, this.height);
+                this.ctx.moveTo(g.x2, 0);
+                this.ctx.lineTo(g.x2, this.height);
+                this.ctx.stroke();
+
+                const tagX = Math.min(g.x1, g.x2) + 10;
+                this.drawGuideTag(`🔒 SHIFT: ${g.label} (Khớp ô ly)`, tagX, Math.max(24, Math.min(this.height - 30, 45)), '#2563EB');
+            } else if (g.subtype === 'slanted') {
+                this.drawExtendedLine(g.x1, g.y1, g.x2, g.y2);
+                this.drawExtendedLine(g.refX1, g.refY1, g.refX2, g.refY2);
+                this.drawGuideTag(`🔒 SHIFT: ${g.label} (Khớp ô ly)`, g.x2 + 12, g.y2 - 12, '#2563EB');
+            }
+        } else if (g.type === 'grid') {
+            // Khớp ô ly chính: Vòng tròn tâm điểm & chữ nhỏ màu ngọc lục bảo
+            this.ctx.strokeStyle = '#059669';
+            this.ctx.setLineDash([3, 3]);
+            this.ctx.lineWidth = 1.4;
             this.ctx.beginPath();
-            this.ctx.moveTo(0, y);
-            this.ctx.lineTo(this.width, y);
+            this.ctx.arc(g.x, g.y, 10, 0, Math.PI * 2);
             this.ctx.stroke();
 
-            this.drawGuideTag(`🔒 SHIFT: ${this.activeGuide.label}`, Math.max(20, Math.min(this.width - 240, 60)), y - 10);
-        } else if (this.activeGuide.type === 'vertical') {
-            const x = this.activeGuide.x;
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, 0);
-            this.ctx.lineTo(x, this.height);
-            this.ctx.stroke();
-
-            this.drawGuideTag(`🔒 SHIFT: ${this.activeGuide.label}`, x + 8, Math.max(24, Math.min(this.height - 30, 40)));
-        } else if (this.activeGuide.type === 'angle') {
-            const { x1, y1, x2, y2, label } = this.activeGuide;
-            this.ctx.beginPath();
-            this.ctx.moveTo(x1, y1);
-            this.ctx.lineTo(x2, y2);
-            this.ctx.stroke();
-
-            this.drawGuideTag(`🔒 SHIFT: ${label}`, x2 + 8, y2 - 10);
+            this.drawGuideTag(`🔒 SHIFT: ${g.label}`, g.x + 14, g.y - 12, '#059669');
         }
 
         this.ctx.restore();
     }
 
-    drawGuideTag(text, x, y) {
+    drawSquareCornerMarker(x, y, sz = 12) {
+        this.ctx.save();
+        this.ctx.setLineDash([]);
+        this.ctx.strokeStyle = '#DC2626';
+        this.ctx.lineWidth = 1.8;
+        this.ctx.strokeRect(x - sz, y - sz, sz, sz);
+        this.ctx.restore();
+    }
+
+    drawExtendedLine(x1, y1, x2, y2) {
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        if (dx === 0 && dy === 0) return;
+        const len = Math.hypot(dx, dy);
+        const ux = dx / len;
+        const uy = dy / len;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1 - ux * 1000, y1 - uy * 1000);
+        this.ctx.lineTo(x2 + ux * 1000, y2 + uy * 1000);
+        this.ctx.stroke();
+    }
+
+    drawGuideTag(text, x, y, bgColor = '#EF4444') {
+        this.ctx.save();
         this.ctx.font = '700 11px "JetBrains Mono", monospace';
         const w = this.ctx.measureText(text).width;
-        this.ctx.fillStyle = '#EF4444';
+        const safeX = Math.max(12, Math.min(this.width - w - 24, x));
+        const safeY = Math.max(18, Math.min(this.height - 18, y));
+        this.ctx.fillStyle = bgColor;
         this.ctx.beginPath();
-        this.ctx.roundRect(x - 6, y - 12, w + 12, 20, 4);
+        this.ctx.roundRect(safeX - 6, safeY - 12, w + 16, 22, 6);
         this.ctx.fill();
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.textAlign = 'left';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText(text, x, y - 2);
+        this.ctx.fillText(text, safeX + 2, safeY - 1);
+        this.ctx.restore();
     }
 
     drawGrid() {
@@ -1080,8 +1360,9 @@ class QuadrilateralDrawingLab {
     // CÁC HÌNH MẪU (PRESETS)
     // =========================================================================
     applyPreset(type) {
-        const cx = this.width / 2;
-        const cy = this.height / 2;
+        const sz = this.options.gridSize; // 25px = 1.0cm
+        const cx = Math.round((this.width / 2) / sz) * sz;
+        const cy = Math.round((this.height / 2) / sz) * sz;
 
         document.querySelectorAll('.preset-chip').forEach(chip => {
             chip.classList.toggle('active', chip.getAttribute('data-preset') === type);
@@ -1089,7 +1370,7 @@ class QuadrilateralDrawingLab {
 
         switch (type) {
             case 'hinh_vuong':
-                const s = 100;
+                const s = 100; // 4cm
                 this.vertices = [
                     { id: 'A', x: cx - s, y: cy - s, label: 'A', color: '#EF4444' },
                     { id: 'B', x: cx + s, y: cy - s, label: 'B', color: '#3B82F6' },
@@ -1099,7 +1380,7 @@ class QuadrilateralDrawingLab {
                 break;
 
             case 'hinh_chu_nhat':
-                const w = 150, h = 90;
+                const w = 150, h = 100; // 6cm x 4cm
                 this.vertices = [
                     { id: 'A', x: cx - w, y: cy - h, label: 'A', color: '#EF4444' },
                     { id: 'B', x: cx + w, y: cy - h, label: 'B', color: '#3B82F6' },
@@ -1109,7 +1390,7 @@ class QuadrilateralDrawingLab {
                 break;
 
             case 'hinh_thoi':
-                const rx = 140, ry = 95;
+                const rx = 125, ry = 100; // 5cm x 4cm
                 this.vertices = [
                     { id: 'A', x: cx, y: cy - ry, label: 'A', color: '#EF4444' },
                     { id: 'B', x: cx + rx, y: cy, label: 'B', color: '#3B82F6' },
@@ -1119,7 +1400,7 @@ class QuadrilateralDrawingLab {
                 break;
 
             case 'hinh_binh_hanh':
-                const bw = 130, bh = 85, shift = 50;
+                const bw = 125, bh = 75, shift = 50; // bội số 25px
                 this.vertices = [
                     { id: 'A', x: cx - bw + shift, y: cy - bh, label: 'A', color: '#EF4444' },
                     { id: 'B', x: cx + bw, y: cy - bh, label: 'B', color: '#3B82F6' },
@@ -1129,7 +1410,7 @@ class QuadrilateralDrawingLab {
                 break;
 
             case 'hinh_thang_can':
-                const topW = 80, botW = 160, th = 85;
+                const topW = 75, botW = 150, th = 75; // bội số 25px
                 this.vertices = [
                     { id: 'A', x: cx - topW, y: cy - th, label: 'A', color: '#EF4444' },
                     { id: 'B', x: cx + topW, y: cy - th, label: 'B', color: '#3B82F6' },
@@ -1139,17 +1420,18 @@ class QuadrilateralDrawingLab {
                 break;
 
             case 'hinh_thang_vuong':
-                const tW = 80, bW = 150, vh = 85;
+                const tW = 75, bW = 150, vh = 75; // bội số 25px
+                const baseX = cx - 100;
                 this.vertices = [
-                    { id: 'A', x: cx - 100, y: cy - vh, label: 'A', color: '#EF4444' },
-                    { id: 'B', x: cx - 100 + tW, y: cy - vh, label: 'B', color: '#3B82F6' },
-                    { id: 'C', x: cx - 100 + bW, y: cy + vh, label: 'C', color: '#10B981' },
-                    { id: 'D', x: cx - 100, y: cy + vh, label: 'D', color: '#F59E0B' }
+                    { id: 'A', x: baseX, y: cy - vh, label: 'A', color: '#EF4444' },
+                    { id: 'B', x: baseX + tW, y: cy - vh, label: 'B', color: '#3B82F6' },
+                    { id: 'C', x: baseX + bW, y: cy + vh, label: 'C', color: '#10B981' },
+                    { id: 'D', x: baseX, y: cy + vh, label: 'D', color: '#F59E0B' }
                 ];
                 break;
 
             case 'hinh_dieu':
-                const kw = 100, khTop = 60, khBot = 130;
+                const kw = 100, khTop = 75, khBot = 125; // bội số 25px
                 this.vertices = [
                     { id: 'A', x: cx, y: cy - khTop, label: 'A', color: '#EF4444' },
                     { id: 'B', x: cx + kw, y: cy, label: 'B', color: '#3B82F6' },
@@ -1161,10 +1443,10 @@ class QuadrilateralDrawingLab {
             case 'tu_giac':
             default:
                 this.vertices = [
-                    { id: 'A', x: cx - 110, y: cy - 90, label: 'A', color: '#EF4444' },
-                    { id: 'B', x: cx + 130, y: cy - 65, label: 'B', color: '#3B82F6' },
-                    { id: 'C', x: cx + 90, y: cy + 105, label: 'C', color: '#10B981' },
-                    { id: 'D', x: cx - 130, y: cy + 70, label: 'D', color: '#F59E0B' }
+                    { id: 'A', x: cx - 100, y: cy - 75, label: 'A', color: '#EF4444' },
+                    { id: 'B', x: cx + 125, y: cy - 50, label: 'B', color: '#3B82F6' },
+                    { id: 'C', x: cx + 75, y: cy + 100, label: 'C', color: '#10B981' },
+                    { id: 'D', x: cx - 125, y: cy + 75, label: 'D', color: '#F59E0B' }
                 ];
                 break;
         }

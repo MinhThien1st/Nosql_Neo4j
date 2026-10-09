@@ -104,7 +104,7 @@ $shapes = $model->getAllShapes();
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <span style="background: #EFF6FF; color: #1E40AF; font-size: 0.8rem; font-weight: 700; padding: 5px 12px; border-radius: 6px; border: 1px solid #BFDBFE; display: inline-flex; align-items: center; gap: 6px;">
-                        ⌨️ Giữ phím <kbd style="background:white;padding:1px 6px;border-radius:4px;border:1px solid #93C5FD;box-shadow:0 1px 2px rgba(0,0,0,0.06);">Shift</kbd> khi kéo để khóa thẳng hàng (Ngang 0° / Dọc 90° / Chéo 45°)
+                        ⌨️ Giữ phím <kbd style="background:white;padding:1px 6px;border-radius:4px;border:1px solid #93C5FD;box-shadow:0 1px 2px rgba(0,0,0,0.06);">Shift</kbd> để khóa Song Song, Vuông Góc (90°) & Trùng đường ô ly chính
                     </span>
                     <button type="button" class="btn btn-sm btn-secondary" onclick="quadLabInstance.applyPreset('tu_giac')">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
