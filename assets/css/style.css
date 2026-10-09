@@ -760,6 +760,245 @@ body {
 }
 
 /* ==============================================================================
+   GRADE FILTER BUTTONS (LỌC THEO KHỐI LỚP 6, 7, 8)
+   ============================================================================== */
+.grade-filter-btn {
+    border: none;
+    background: transparent;
+    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.grade-filter-btn:hover {
+    color: var(--primary);
+    background: rgba(255, 255, 255, 0.7);
+}
+
+.grade-filter-btn.active {
+    background: #FFFFFF;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    border: 1px solid rgba(191, 219, 254, 0.8);
+}
+
+/* ==============================================================================
+   INTERACTIVE DRAWING LAB (PHÒNG THÍ NGHIỆM VẼ HÌNH TỨ GIÁC)
+   ============================================================================== */
+.draw-workspace {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 24px;
+    align-items: start;
+}
+
+.draw-canvas-card {
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-xs);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.draw-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 520px;
+    background-color: #FAFAFA;
+    background-image: 
+        linear-gradient(to right, #EEF2F6 1px, transparent 1px),
+        linear-gradient(to bottom, #EEF2F6 1px, transparent 1px);
+    background-size: 20px 20px;
+    cursor: default;
+    user-select: none;
+    touch-action: none;
+}
+
+#quad-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.draw-presets-bar {
+    padding: 14px 20px;
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.preset-chip {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 0.84rem;
+    font-weight: 700;
+    border: 1px solid var(--border-light);
+    background: #F8FAFC;
+    color: var(--text-strong);
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.preset-chip:hover {
+    background: var(--primary-subtle);
+    color: var(--primary);
+    border-color: #BFDBFE;
+    transform: translateY(-1px);
+}
+
+.preset-chip.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.draw-toolbar-bottom {
+    padding: 12px 20px;
+    background: #FFFFFF;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.draw-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: #F1F5F9;
+    border: 1px solid var(--border-light);
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.draw-toggle-btn.active {
+    background: #EFF6FF;
+    color: var(--primary);
+    border-color: #93C5FD;
+    font-weight: 700;
+}
+
+.draw-sidebar {
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-xs);
+    padding: 24px;
+    position: sticky;
+    top: 90px;
+}
+
+.detected-header-box {
+    padding: 18px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    transition: var(--transition);
+    border: 1px solid transparent;
+}
+
+.detected-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detected-subtitle {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.condition-checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+}
+
+.condition-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 0.86rem;
+    margin-bottom: 4px;
+    transition: var(--transition);
+}
+
+.condition-item.met {
+    background: #F0FDF4;
+    color: #166534;
+    font-weight: 600;
+}
+
+.condition-item.not-met {
+    background: #F8FAFC;
+    color: #94A3B8;
+}
+
+.condition-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-weight: 800;
+}
+
+.metric-grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.metric-cell {
+    background: #F8FAFC;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.metric-cell-label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+}
+
+.metric-cell-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-strong);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ==============================================================================
    RESPONSIVE DESIGN
    ============================================================================== */
 @media (max-width: 992px) {

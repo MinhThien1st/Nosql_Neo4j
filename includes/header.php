@@ -54,6 +54,11 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <li class="nav-item <?= ($currentPage == 'shapes.php') ? 'active' : '' ?>">
                 <a href="shapes.php">Danh Mục Hình</a>
             </li>
+            <li class="nav-item <?= ($currentPage == 'draw.php') ? 'active' : '' ?>">
+                <a href="draw.php" style="color: var(--primary); font-weight: 700;">
+                    <span style="display:inline-block;margin-right:4px;">✏️</span> Vẽ & Nhận Diện
+                </a>
+            </li>
             <li class="nav-item <?= ($currentPage == 'transformer.php') ? 'active' : '' ?>">
                 <a href="transformer.php">Chuyển Hóa Hình Học</a>
             </li>

@@ -61,6 +61,27 @@ $model = new GeometryModel();
             </div>
         </div>
 
+        <!-- Bộ Lọc Đồ Thị Theo Khối Lớp Học -->
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; padding: 0 4px;">
+            <div style="display: inline-flex; background: #F1F5F9; padding: 4px; border-radius: 999px; gap: 4px; border: 1px solid var(--border-light);">
+                <button type="button" class="btn btn-sm btn-secondary active" id="filter-node-all" onclick="filterGraphByGrade('all', this)">
+                    📚 Tất Cả Lớp
+                </button>
+                <button type="button" class="btn btn-sm btn-secondary" id="filter-node-6" onclick="filterGraphByGrade(6, this)">
+                    🎒 Toán Lớp 6
+                </button>
+                <button type="button" class="btn btn-sm btn-secondary" id="filter-node-7" onclick="filterGraphByGrade(7, this)">
+                    📐 Toán Lớp 7
+                </button>
+                <button type="button" class="btn btn-sm btn-secondary" id="filter-node-8" onclick="filterGraphByGrade(8, this)">
+                    🎓 Toán Lớp 8
+                </button>
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                💡 Chọn khối lớp để làm nổi bật các hình học thuộc chương trình trên đồ thị Neo4j
+            </div>
+        </div>
+
         <div class="graph-workspace">
             <div id="cy-network">
                 <!-- Vis-network sẽ vẽ đồ thị vào đây -->

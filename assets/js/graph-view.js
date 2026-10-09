@@ -6,6 +6,8 @@
  */
 
 let networkInstance = null;
+let nodesDataSet = null;
+let rawNodesCache = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('cy-network');
@@ -160,8 +162,11 @@ function renderVisGraph(container, graphData) {
         }
     }));
 
+    rawNodesCache = JSON.parse(JSON.stringify(formattedNodes));
+    nodesDataSet = new vis.DataSet(formattedNodes);
+
     const data = {
-        nodes: new vis.DataSet(formattedNodes),
+        nodes: nodesDataSet,
         edges: new vis.DataSet(formattedEdges)
     };
 
@@ -283,3 +288,65 @@ async function loadShapeDetailSidebar(shapeId) {
         sidebar.innerHTML = '<div style="color:#DC2626;">Lỗi tải chi tiết!</div>';
     }
 }
+
+// Lọc và làm nổi bật các node theo khối lớp học (Toán 6, 7, 8)
+window.filterGraphByGrade = function(grade, btn) {
+    if (!nodesDataSet || !rawNodesCache.length) return;
+
+    // Cập nhật trạng thái nút
+    document.querySelectorAll('#filter-node-all, #filter-node-6, #filter-node-7, #filter-node-8').forEach(b => {
+        b.classList.remove('active');
+    });
+    if (btn) btn.classList.add('active');
+
+    const gradeMap = {
+        6: ['hinh_chu_nhat', 'hinh_thoi', 'hinh_binh_hanh', 'hinh_thang_can'],
+        7: ['tu_giac', 'hinh_thang', 'hinh_thang_vuong'],
+        8: ['tu_giac', 'hinh_thang', 'hinh_thang_vuong', 'hinh_thang_can', 'hinh_binh_hanh', 'hinh_chu_nhat', 'hinh_thoi', 'hinh_vuong', 'hinh_dieu']
+    };
+
+    const targetIds = (grade === 'all') ? null : (gradeMap[grade] || []);
+
+    const updates = rawNodesCache.map(origNode => {
+        if (!targetIds) {
+            // Khôi phục tất cả
+            return {
+                id: origNode.id,
+                opacity: 1,
+                borderWidth: origNode.borderWidth || 2,
+                color: origNode.color
+            };
+        }
+
+        const isMatch = targetIds.includes(origNode.id);
+        if (isMatch) {
+            return {
+                id: origNode.id,
+                opacity: 1,
+                borderWidth: 4,
+                color: {
+                    border: '#2563EB',
+                    background: origNode.color.background,
+                    highlight: origNode.color.highlight
+                }
+            };
+        } else {
+            return {
+                id: origNode.id,
+                opacity: 0.25,
+                borderWidth: 1
+            };
+        }
+    });
+
+    nodesDataSet.update(updates);
+
+    if (networkInstance && targetIds && targetIds.length) {
+        networkInstance.fit({
+            nodes: targetIds,
+            animation: { duration: 600, easingFunction: 'easeInOutQuad' }
+        });
+    } else if (networkInstance) {
+        networkInstance.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+    }
+};

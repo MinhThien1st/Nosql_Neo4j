@@ -29,22 +29,61 @@ class GeometryModel
     }
 
     /**
-     * Lấy toàn bộ danh sách các hình tứ giác
+     * Bản đồ phân loại theo khối lớp học (Chương trình GDPT Toán THCS)
+     */
+    public static function getShapeGrades($shapeId): array
+    {
+        $map = [
+            'tu_giac' => [7, 8],
+            'hinh_thang' => [7, 8],
+            'hinh_thang_vuong' => [7, 8],
+            'hinh_thang_can' => [6, 8],
+            'hinh_dieu' => [8],
+            'hinh_binh_hanh' => [6, 8],
+            'hinh_chu_nhat' => [6, 8],
+            'hinh_thoi' => [6, 8],
+            'hinh_vuong' => [6, 8],
+        ];
+        return $map[$shapeId] ?? [8];
+    }
+
+    /**
+     * Lấy toàn bộ danh sách các hình tứ giác (kèm thông tin lớp học)
      */
     public function getAllShapes()
     {
+        $shapes = [];
         if ($this->isLiveNeo4j()) {
             $cypher = "MATCH (s:Shape) RETURN s ORDER BY s.name";
             $res = $this->neo4j->runCypher($cypher);
             if ($res['success'] && !empty($res['data']['data'])) {
-                $shapes = [];
                 foreach ($res['data']['data'] as $row) {
-                    $shapes[] = $row['row'][0];
+                    $shape = $row['row'][0];
+                    $shape['grades'] = self::getShapeGrades($shape['id'] ?? '');
+                    $shape['grade_text'] = 'Toán Lớp ' . implode(', ', $shape['grades']);
+                    $shapes[] = $shape;
                 }
                 return $shapes;
             }
         }
-        return array_values($this->fallbackData['shapes']);
+
+        foreach ($this->fallbackData['shapes'] as $id => $shape) {
+            $shape['grades'] = self::getShapeGrades($id);
+            $shape['grade_text'] = 'Toán Lớp ' . implode(', ', $shape['grades']);
+            $shapes[] = $shape;
+        }
+        return $shapes;
+    }
+
+    /**
+     * Lấy danh sách các hình theo khối lớp (6, 7, hoặc 8)
+     */
+    public function getShapesByGrade(int $grade)
+    {
+        $all = $this->getAllShapes();
+        return array_values(array_filter($all, function($s) use ($grade) {
+            return in_array($grade, $s['grades'] ?? []);
+        }));
     }
 
     /**

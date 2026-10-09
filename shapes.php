@@ -27,16 +27,41 @@ $shapes = $model->getAllShapes();
         </p>
     </div>
 
-    <div class="shapes-grid">
+    <!-- Bộ Lọc Phân Cấp Theo Khối Lớp Học (SGK Toán THCS) -->
+    <div style="max-width: 850px; margin: 0 auto 30px; text-align: center;">
+        <div class="grade-filter-container" style="display: inline-flex; background: #F1F5F9; padding: 6px; border-radius: 999px; gap: 6px; flex-wrap: wrap; justify-content: center; border: 1px solid var(--border-light);">
+            <button type="button" class="grade-filter-btn active" data-grade="all" onclick="filterByGrade('all')">
+                📚 Tất Cả Khối Lớp (9 hình)
+            </button>
+            <button type="button" class="grade-filter-btn" data-grade="6" onclick="filterByGrade(6)">
+                🎒 Toán Lớp 6 (4 hình)
+            </button>
+            <button type="button" class="grade-filter-btn" data-grade="7" onclick="filterByGrade(7)">
+                📐 Toán Lớp 7 (3 hình)
+            </button>
+            <button type="button" class="grade-filter-btn" data-grade="8" onclick="filterByGrade(8)">
+                🎓 Toán Lớp 8 (9 hình)
+            </button>
+        </div>
+        <div id="grade-curriculum-info" style="margin-top: 14px; font-size: 0.9rem; color: var(--text-muted); background: white; padding: 12px 20px; border-radius: var(--radius-md); border: 1px solid var(--border-light); display: inline-block;">
+            💡 Đang hiển thị trọn vẹn toàn bộ 9 dạng hình tứ giác trong cơ sở dữ liệu đồ thị Neo4j.
+        </div>
+    </div>
+
+    <div class="shapes-grid" id="shapes-cards-container">
         <?php foreach ($shapes as $shape): 
             $formula = $shape['formula'] ?? [];
             $props = $shape['properties'] ?? [];
+            $gradesJson = json_encode($shape['grades'] ?? [8]);
         ?>
-            <div class="shape-card" id="card-<?= htmlspecialchars($shape['id']) ?>">
+            <div class="shape-card" id="card-<?= htmlspecialchars($shape['id']) ?>" data-grades='<?= htmlspecialchars($gradesJson, ENT_QUOTES) ?>'>
                 <div>
-                    <div class="shape-card-header">
+                    <div class="shape-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <span class="shape-badge" style="background: <?= $shape['color'] ?? '#2563EB' ?>; color: white;">
                             <?= htmlspecialchars($shape['badge'] ?? 'Tứ giác') ?>
+                        </span>
+                        <span style="background: #F1F5F9; color: #475569; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid #E2E8F0;">
+                            <?= htmlspecialchars($shape['grade_text'] ?? 'Toán THCS') ?>
                         </span>
                     </div>
 
@@ -73,5 +98,37 @@ $shapes = $model->getAllShapes();
         <?php endforeach; ?>
     </div>
 </main>
+
+<script>
+const gradeDescriptions = {
+    'all': '💡 Đang hiển thị trọn vẹn toàn bộ 9 dạng hình tứ giác trong cơ sở dữ liệu đồ thị Neo4j.',
+    '6': '🎒 <strong>Toán Lớp 6 (Hình học trực quan):</strong> Học sinh làm quen nhận biết các hình cơ bản trong thực tế gồm: <em>Hình chữ nhật, Hình thoi, Hình bình hành, Hình thang cân</em> cùng công thức chu vi và diện tích thực nghiệm.',
+    '7': '📐 <strong>Toán Lớp 7 (Định hình & Góc):</strong> Làm quen cấu trúc đa giác, khái niệm 2 đường thẳng song song tạo thành <em>Hình thang</em> và tam giác vuông tạo thành <em>Hình thang vuông</em>.',
+    '8': '🎓 <strong>Toán Lớp 8 (Định lý & Dấu hiệu nhận biết):</strong> Đỉnh cao của hình học tứ giác phẳng! Học sinh học đầy đủ 9 hình với hệ thống định lý, tính chất đối xứng và các dấu hiệu nhận biết chứng minh hình học.'
+};
+
+function filterByGrade(grade) {
+    document.querySelectorAll('.grade-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-grade') == grade.toString());
+    });
+
+    const infoBox = document.getElementById('grade-curriculum-info');
+    if (infoBox && gradeDescriptions[grade.toString()]) {
+        infoBox.innerHTML = gradeDescriptions[grade.toString()];
+    }
+
+    const cards = document.querySelectorAll('.shape-card');
+    cards.forEach(card => {
+        const grades = JSON.parse(card.getAttribute('data-grades') || '[]');
+        if (grade === 'all' || grades.includes(Number(grade))) {
+            card.style.display = 'flex';
+            card.style.opacity = '1';
+            card.style.transform = 'scale(1)';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
