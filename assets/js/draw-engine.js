@@ -190,6 +190,11 @@ class QuadrilateralDrawingLab {
         // Trạng thái nhận diện hiện tại
         this.currentDetection = null;
 
+        // Trạng thái phím Shift & Đường gióng thẳng hàng
+        this.isShiftDown = false;
+        this.activeGuide = null;
+        this.lastPointerPos = null;
+
         this.initCanvasSize();
         this.bindEvents();
         this.applyPreset('hinh_chu_nhat');
@@ -231,6 +236,24 @@ class QuadrilateralDrawingLab {
         });
 
         window.addEventListener('touchend', () => this.onPointerUp());
+
+        // Bắt sự kiện phím Shift (Khóa thẳng hàng)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Shift') {
+                this.isShiftDown = true;
+                if (this.dragMode && this.lastPointerPos) {
+                    this.onPointerMove({ clientX: this.lastPointerPos.rawX, clientY: this.lastPointerPos.rawY, shiftKey: true });
+                }
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'Shift') {
+                this.isShiftDown = false;
+                this.activeGuide = null;
+                this.render();
+            }
+        });
     }
 
     getCanvasPos(e) {
@@ -281,6 +304,8 @@ class QuadrilateralDrawingLab {
 
     onPointerMove(e) {
         const pos = this.getCanvasPos(e);
+        this.lastPointerPos = { x: pos.x, y: pos.y, rawX: e.clientX, rawY: e.clientY };
+        const isShift = Boolean(e.shiftKey || this.isShiftDown);
 
         if (!this.dragMode) {
             // Hover states
@@ -322,6 +347,63 @@ class QuadrilateralDrawingLab {
             let targetX = pos.x - this.dragOffset.x;
             let targetY = pos.y - this.dragOffset.y;
 
+            // Xử lý Shift: Khóa thẳng hàng ngang, dọc hoặc 45 độ so với đỉnh liền kề
+            if (isShift) {
+                const i = this.dragTargetIndex;
+                const prev = this.vertices[(i + 3) % 4];
+                const next = this.vertices[(i + 1) % 4];
+
+                const dyPrev = targetY - prev.y;
+                const dxPrev = targetX - prev.x;
+                const dyNext = targetY - next.y;
+                const dxNext = targetX - next.x;
+
+                let locked = false;
+
+                // 1. Khóa thẳng hàng ngang (y bằng nhau -> cạnh nằm ngang tuyệt đối 0°)
+                if (Math.abs(dyPrev) <= 32) {
+                    targetY = prev.y;
+                    this.activeGuide = { type: 'horizontal', y: prev.y, label: `Thẳng ngang với đỉnh ${prev.label} (0°)` };
+                    locked = true;
+                } else if (Math.abs(dyNext) <= 32) {
+                    targetY = next.y;
+                    this.activeGuide = { type: 'horizontal', y: next.y, label: `Thẳng ngang với đỉnh ${next.label} (0°)` };
+                    locked = true;
+                }
+
+                // 2. Khóa thẳng hàng dọc (x bằng nhau -> cạnh dựng đứng tuyệt đối 90°)
+                if (Math.abs(dxPrev) <= 32) {
+                    targetX = prev.x;
+                    this.activeGuide = { type: 'vertical', x: prev.x, label: `Thẳng dọc với đỉnh ${prev.label} (90°)` };
+                    locked = true;
+                } else if (Math.abs(dxNext) <= 32) {
+                    targetX = next.x;
+                    this.activeGuide = { type: 'vertical', x: next.x, label: `Thẳng dọc với đỉnh ${next.label} (90°)` };
+                    locked = true;
+                }
+
+                // 3. Khóa góc chéo 45° so với đỉnh trước đó nếu chưa khóa ngang/dọc
+                if (!locked) {
+                    const distPrev = Math.hypot(dxPrev, dyPrev);
+                    if (distPrev > 15) {
+                        const rawAng = Math.atan2(dyPrev, dxPrev);
+                        const step = Math.PI / 4; // 45 độ
+                        const snapAng = Math.round(rawAng / step) * step;
+                        targetX = prev.x + distPrev * Math.cos(snapAng);
+                        targetY = prev.y + distPrev * Math.sin(snapAng);
+                        const deg = Math.round((snapAng * 180 / Math.PI + 360) % 360);
+                        this.activeGuide = {
+                            type: 'angle',
+                            x1: prev.x, y1: prev.y,
+                            x2: targetX, y2: targetY,
+                            label: `Góc chéo ${deg}° với đỉnh ${prev.label}`
+                        };
+                    }
+                }
+            } else {
+                this.activeGuide = null;
+            }
+
             if (this.options.gridSnap) {
                 targetX = Math.round(targetX / this.options.gridSize) * this.options.gridSize;
                 targetY = Math.round(targetY / this.options.gridSize) * this.options.gridSize;
@@ -334,8 +416,22 @@ class QuadrilateralDrawingLab {
             this.vertices[this.dragTargetIndex].x = targetX;
             this.vertices[this.dragTargetIndex].y = targetY;
         } else if (this.dragMode === 'edge') {
-            const dx = pos.x - this.lastPos.x;
-            const dy = pos.y - this.lastPos.y;
+            let dx = pos.x - this.lastPos.x;
+            let dy = pos.y - this.lastPos.y;
+
+            // Xử lý Shift khi kéo cạnh: Khóa di chuyển thuần ngang hoặc thuần dọc
+            if (isShift) {
+                if (Math.abs(dx) >= Math.abs(dy)) {
+                    dy = 0;
+                    this.activeGuide = { type: 'horizontal', y: this.vertices[this.dragTargetIndex].y, label: 'Khóa tịnh tiến ngang' };
+                } else {
+                    dx = 0;
+                    this.activeGuide = { type: 'vertical', x: this.vertices[this.dragTargetIndex].x, label: 'Khóa tịnh tiến dọc' };
+                }
+            } else {
+                this.activeGuide = null;
+            }
+
             this.lastPos = pos;
 
             const i1 = this.dragTargetIndex;
@@ -349,6 +445,7 @@ class QuadrilateralDrawingLab {
             const dx = pos.x - this.lastPos.x;
             const dy = pos.y - this.lastPos.y;
             this.lastPos = pos;
+            this.activeGuide = null;
 
             for (let v of this.vertices) {
                 v.x = Math.max(20, Math.min(this.width - 20, v.x + dx));
@@ -362,6 +459,7 @@ class QuadrilateralDrawingLab {
     onPointerUp() {
         this.dragMode = null;
         this.dragTargetIndex = -1;
+        this.activeGuide = null;
         this.canvas.style.cursor = 'default';
         this.render();
     }
@@ -584,8 +682,62 @@ class QuadrilateralDrawingLab {
         // 8. Vẽ 4 đỉnh A, B, C, D
         this.drawVertices();
 
+        // 8.5. Vẽ đường gióng thẳng hàng khi giữ Shift
+        if (this.activeGuide) {
+            this.drawAlignmentGuide();
+        }
+
         // 9. Cập nhật Sidebar bên phải
         this.updateSidebarUI(analysis);
+    }
+
+    drawAlignmentGuide() {
+        if (!this.activeGuide) return;
+        this.ctx.save();
+        this.ctx.setLineDash([6, 4]);
+        this.ctx.lineWidth = 1.8;
+        this.ctx.strokeStyle = '#EF4444'; // Đỏ nổi bật báo hiệu đường thẳng khóa
+
+        if (this.activeGuide.type === 'horizontal') {
+            const y = this.activeGuide.y;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(this.width, y);
+            this.ctx.stroke();
+
+            this.drawGuideTag(`🔒 SHIFT: ${this.activeGuide.label}`, Math.max(20, Math.min(this.width - 240, 60)), y - 10);
+        } else if (this.activeGuide.type === 'vertical') {
+            const x = this.activeGuide.x;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x, this.height);
+            this.ctx.stroke();
+
+            this.drawGuideTag(`🔒 SHIFT: ${this.activeGuide.label}`, x + 8, Math.max(24, Math.min(this.height - 30, 40)));
+        } else if (this.activeGuide.type === 'angle') {
+            const { x1, y1, x2, y2, label } = this.activeGuide;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.stroke();
+
+            this.drawGuideTag(`🔒 SHIFT: ${label}`, x2 + 8, y2 - 10);
+        }
+
+        this.ctx.restore();
+    }
+
+    drawGuideTag(text, x, y) {
+        this.ctx.font = '700 11px "JetBrains Mono", monospace';
+        const w = this.ctx.measureText(text).width;
+        this.ctx.fillStyle = '#EF4444';
+        this.ctx.beginPath();
+        this.ctx.roundRect(x - 6, y - 12, w + 12, 20, 4);
+        this.ctx.fill();
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(text, x, y - 2);
     }
 
     drawGrid() {
