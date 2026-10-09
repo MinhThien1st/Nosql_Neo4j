@@ -50,10 +50,6 @@ $selectedShape = $_GET['shape'] ?? 'hinh_chu_nhat';
                 <div class="calc-result-box">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
                         <span style="font-weight:800;color:var(--text-strong);font-size:1.05rem;">Kết Quả Tính Toán</span>
-                        <button onclick="speakText('Chu vi là ' + document.getElementById('res-perimeter').innerText + '. Diện tích là ' + document.getElementById('res-area').innerText)" class="btn btn-sm btn-secondary" title="Nghe kết quả">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                            Nghe đọc
-                        </button>
                     </div>
 
                     <div class="result-metric">

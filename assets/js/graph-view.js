@@ -242,14 +242,10 @@ async function loadShapeDetailSidebar(shapeId) {
 
         sidebar.innerHTML = `
             <div class="sidebar-detail-content">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;margin-bottom:14px;">
                     <span style="background:${shape.color || '#2563EB'};color:white;font-weight:700;padding:3px 10px;border-radius:999px;font-size:0.75rem;text-transform:uppercase;">
                         ${shape.badge || 'Tứ giác'}
                     </span>
-                    <button onclick="speakText('${shape.name}. ${shape.definition.replace(/'/g, "\\'")}')" class="btn btn-sm btn-secondary" title="Đọc định nghĩa">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                        Nghe đọc
-                    </button>
                 </div>
 
                 <h3 style="font-size:1.35rem;font-weight:800;margin-bottom:2px;color:#0F172A;">${shape.name}</h3>

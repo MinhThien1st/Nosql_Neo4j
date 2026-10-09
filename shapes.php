@@ -38,10 +38,6 @@ $shapes = $model->getAllShapes();
                         <span class="shape-badge" style="background: <?= $shape['color'] ?? '#2563EB' ?>; color: white;">
                             <?= htmlspecialchars($shape['badge'] ?? 'Tứ giác') ?>
                         </span>
-                        <button onclick="speakText('<?= addslashes($shape['name'] . '. ' . $shape['definition']) ?>')" class="btn btn-sm btn-secondary" title="Nghe đọc định nghĩa">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                            Nghe đọc
-                        </button>
                     </div>
 
                     <div class="shape-preview-svg">
@@ -72,13 +68,6 @@ $shapes = $model->getAllShapes();
                             <span class="formula-tag"><?= htmlspecialchars($formula['area_formula'] ?? 'S = ...') ?></span>
                         </div>
                     </div>
-                </div>
-
-                <div class="shape-card-actions">
-                    <button onclick="speakText('<?= addslashes($shape['name'] . '. ' . $shape['definition']) ?>')" class="btn-card btn-card-primary" style="width:100%;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-                        Nghe Đọc Định Nghĩa
-                    </button>
                 </div>
             </div>
         <?php endforeach; ?>
