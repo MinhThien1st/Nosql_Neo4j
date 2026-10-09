@@ -86,6 +86,12 @@ $shapes = $model->getAllShapes();
             <!-- Thanh Tùy Chọn Bật / Tắt Hiển Thị Đo Đạc -->
             <div class="draw-toolbar-bottom">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" id="btn-toggle-grid" class="draw-toggle-btn active" onclick="toggleOptionUI('showGrid', this)">
+                        📐 Lưới Ô Ly Toán Học
+                    </button>
+                    <button type="button" id="btn-toggle-snap" class="draw-toggle-btn" onclick="toggleOptionUI('gridSnap', this)">
+                        🧲 Bắt Dính Lưới (Snap)
+                    </button>
                     <button type="button" id="btn-toggle-lengths" class="draw-toggle-btn active" onclick="toggleOptionUI('showLengths', this)">
                         📏 Hiện Độ Dài Cạnh
                     </button>
@@ -94,9 +100,6 @@ $shapes = $model->getAllShapes();
                     </button>
                     <button type="button" id="btn-toggle-diagonals" class="draw-toggle-btn active" onclick="toggleOptionUI('showDiagonals', this)">
                         ❌ Hiện Đường Chéo
-                    </button>
-                    <button type="button" id="btn-toggle-grid" class="draw-toggle-btn" onclick="toggleOptionUI('gridSnap', this)">
-                        🧲 Bắt Dính Lưới Ô Vuông
                     </button>
                 </div>
                 <div>

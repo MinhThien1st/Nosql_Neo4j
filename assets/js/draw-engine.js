@@ -163,8 +163,9 @@ class QuadrilateralDrawingLab {
             showLengths: true,
             showAngles: true,
             showDiagonals: true,
+            showGrid: true, // Mặc định luôn bật lưới ô ly toán học
             gridSnap: false,
-            gridSize: 20
+            gridSize: 25 // 25 pixel = đúng 1.0 cm
         };
 
         // Điểm A, B, C, D (Thứ tự kim đồng hồ)
@@ -542,8 +543,8 @@ class QuadrilateralDrawingLab {
         this.currentDetection = analysis;
         const { shape, metrics } = analysis;
 
-        // 1. Vẽ lưới tọa độ nếu bật
-        if (this.options.gridSnap) {
+        // 1. Vẽ nền và lưới ô ly toán học
+        if (this.options.showGrid) {
             this.drawGrid();
         }
 
@@ -589,10 +590,37 @@ class QuadrilateralDrawingLab {
 
     drawGrid() {
         this.ctx.save();
-        this.ctx.strokeStyle = '#E2E8F0';
-        this.ctx.lineWidth = 0.8;
-        const sz = this.options.gridSize;
 
+        // 1. Nền giấy ô ly toán học cao cấp
+        this.ctx.fillStyle = '#FAFBFC';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        const sz = this.options.gridSize; // 25px = 1cm
+        const halfSz = sz / 2; // 12.5px = 0.5cm
+
+        // 2. Lưới phụ (Sub-grid 12.5px) - Nét siêu mảnh
+        this.ctx.strokeStyle = '#F1F5F9';
+        this.ctx.lineWidth = 0.6;
+        for (let x = 0; x < this.width; x += halfSz) {
+            if (x % sz !== 0) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, 0);
+                this.ctx.lineTo(x, this.height);
+                this.ctx.stroke();
+            }
+        }
+        for (let y = 0; y < this.height; y += halfSz) {
+            if (y % sz !== 0) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, y);
+                this.ctx.lineTo(this.width, y);
+                this.ctx.stroke();
+            }
+        }
+
+        // 3. Lưới chính (Major-grid 25px = 1cm) - Nét kẻ rõ ràng
+        this.ctx.strokeStyle = '#E2E8F0';
+        this.ctx.lineWidth = 0.9;
         for (let x = 0; x < this.width; x += sz) {
             this.ctx.beginPath();
             this.ctx.moveTo(x, 0);
@@ -605,6 +633,43 @@ class QuadrilateralDrawingLab {
             this.ctx.lineTo(this.width, y);
             this.ctx.stroke();
         }
+
+        // 4. Lưới mốc 50px (2cm) kèm đánh số cm ở viền trên và viền trái
+        this.ctx.strokeStyle = '#CBD5E1';
+        this.ctx.lineWidth = 1.2;
+        this.ctx.font = '600 9.5px "JetBrains Mono", monospace';
+        this.ctx.fillStyle = '#94A3B8';
+
+        for (let x = sz * 2; x < this.width; x += sz * 2) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, 0);
+            this.ctx.lineTo(x, this.height);
+            this.ctx.stroke();
+
+            const cmVal = Math.round(x / this.PIXELS_PER_CM);
+            this.ctx.fillText(`${cmVal}cm`, x + 3, 12);
+        }
+
+        for (let y = sz * 2; y < this.height; y += sz * 2) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(this.width, y);
+            this.ctx.stroke();
+
+            const cmVal = Math.round(y / this.PIXELS_PER_CM);
+            this.ctx.fillText(`${cmVal}cm`, 4, y - 4);
+        }
+
+        // 5. Vẽ dấu chấm giao điểm tinh tế (Crosshair dots)
+        this.ctx.fillStyle = '#94A3B8';
+        for (let x = sz * 2; x < this.width; x += sz * 2) {
+            for (let y = sz * 2; y < this.height; y += sz * 2) {
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, 1.4, 0, Math.PI * 2);
+                this.ctx.fill();
+            }
+        }
+
         this.ctx.restore();
     }
 
