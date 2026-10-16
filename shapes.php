@@ -48,6 +48,20 @@ $shapes = $model->getAllShapes();
         </div>
     </div>
 
+<?php
+function formatMathFormula(?string $str): string {
+    if (empty($str)) return '';
+    $replacements = [
+        ' * ' => ' × ',
+        '*' => ' × ',
+        '^2' => '²',
+        'd1' => 'd₁',
+        'd2' => 'd₂',
+    ];
+    return strtr($str, $replacements);
+}
+?>
+
     <div class="shapes-grid" id="shapes-cards-container">
         <?php foreach ($shapes as $shape): 
             $formula = $shape['formula'] ?? [];
@@ -55,7 +69,7 @@ $shapes = $model->getAllShapes();
             $gradesJson = json_encode($shape['grades'] ?? [8]);
         ?>
             <div class="shape-card" id="card-<?= htmlspecialchars($shape['id']) ?>" data-grades='<?= htmlspecialchars($gradesJson, ENT_QUOTES) ?>'>
-                <div>
+                <div style="display: flex; flex-direction: column; height: 100%;">
                     <div class="shape-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <span class="shape-badge" style="background: <?= $shape['color'] ?? '#2563EB' ?>; color: white;">
                             <?= htmlspecialchars($shape['badge'] ?? 'Tứ giác') ?>
@@ -83,15 +97,24 @@ $shapes = $model->getAllShapes();
                         <span style="color: var(--text-muted);"><?= htmlspecialchars($shape['real_life'] ?? 'Trong các công trình kiến trúc và đồ vật đời sống') ?></span>
                     </div>
 
-                    <div class="formula-tag-group">
-                        <div style="margin-bottom: 4px; display: flex; justify-content: space-between;">
-                            <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 600;">Chu vi:</span>
-                            <span class="formula-tag"><?= htmlspecialchars($formula['perimeter_formula'] ?? 'P = a + b + c + d') ?></span>
+                    <div class="formula-tag-group" style="margin-top: auto; margin-bottom: 14px;">
+                        <div style="margin-bottom: 6px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                            <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 600; white-space: nowrap;">Chu vi:</span>
+                            <span class="formula-tag"><?= htmlspecialchars(formatMathFormula($formula['perimeter_formula'] ?? 'P = a + b + c + d')) ?></span>
                         </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 600;">Diện tích:</span>
-                            <span class="formula-tag"><?= htmlspecialchars($formula['area_formula'] ?? 'S = ...') ?></span>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                            <span style="color: var(--text-muted); font-size: 0.82rem; font-weight: 600; white-space: nowrap;">Diện tích:</span>
+                            <span class="formula-tag"><?= htmlspecialchars(formatMathFormula($formula['area_formula'] ?? 'S = ...')) ?></span>
                         </div>
+                    </div>
+
+                    <div class="shape-card-actions">
+                        <a href="calculator.php?shape=<?= urlencode($shape['id']) ?>" class="btn-card btn-card-calc" title="Tính toán chu vi và diện tích">
+                            🧮 Tính Toán
+                        </a>
+                        <a href="compare.php?s1=<?= urlencode($shape['id']) ?>" class="btn-card btn-card-primary" title="So sánh với hình khác">
+                            ⚖️ So Sánh
+                        </a>
                     </div>
                 </div>
             </div>

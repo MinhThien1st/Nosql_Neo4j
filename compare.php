@@ -75,10 +75,10 @@ $comparison = $model->compareShapes($s1, $s2);
                     <?= renderShapeSvg($shape1['id'], 220, 130) ?>
                 </div>
                 <div style="font-weight: 700; color: var(--text-strong); font-size: 0.9rem; font-family: 'JetBrains Mono', monospace;">
-                    P = <?= htmlspecialchars($shape1['formula']['perimeter_formula'] ?? '') ?>
+                    <?= htmlspecialchars(str_starts_with($shape1['formula']['perimeter_formula'] ?? '', 'P') ? $shape1['formula']['perimeter_formula'] : 'P = ' . ($shape1['formula']['perimeter_formula'] ?? '')) ?>
                 </div>
                 <div style="font-weight: 700; color: var(--accent-teal); font-size: 0.9rem; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">
-                    S = <?= htmlspecialchars($shape1['formula']['area_formula'] ?? '') ?>
+                    <?= htmlspecialchars(str_starts_with($shape1['formula']['area_formula'] ?? '', 'S') ? $shape1['formula']['area_formula'] : 'S = ' . ($shape1['formula']['area_formula'] ?? '')) ?>
                 </div>
             </div>
 
@@ -88,10 +88,10 @@ $comparison = $model->compareShapes($s1, $s2);
                     <?= renderShapeSvg($shape2['id'], 220, 130) ?>
                 </div>
                 <div style="font-weight: 700; color: var(--text-strong); font-size: 0.9rem; font-family: 'JetBrains Mono', monospace;">
-                    P = <?= htmlspecialchars($shape2['formula']['perimeter_formula'] ?? '') ?>
+                    <?= htmlspecialchars(str_starts_with($shape2['formula']['perimeter_formula'] ?? '', 'P') ? $shape2['formula']['perimeter_formula'] : 'P = ' . ($shape2['formula']['perimeter_formula'] ?? '')) ?>
                 </div>
                 <div style="font-weight: 700; color: var(--accent-teal); font-size: 0.9rem; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">
-                    S = <?= htmlspecialchars($shape2['formula']['area_formula'] ?? '') ?>
+                    <?= htmlspecialchars(str_starts_with($shape2['formula']['area_formula'] ?? '', 'S') ? $shape2['formula']['area_formula'] : 'S = ' . ($shape2['formula']['area_formula'] ?? '')) ?>
                 </div>
             </div>
         </div>

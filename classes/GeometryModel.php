@@ -48,18 +48,27 @@ class GeometryModel
     }
 
     /**
-     * Lấy toàn bộ danh sách các hình tứ giác (kèm thông tin lớp học)
+     * Lấy toàn bộ danh sách các hình tứ giác (kèm thông tin lớp học và công thức toán học)
      */
     public function getAllShapes()
     {
         $shapes = [];
         if ($this->isLiveNeo4j()) {
-            $cypher = "MATCH (s:Shape) RETURN s ORDER BY s.name";
+            $cypher = "
+                MATCH (s:Shape)
+                OPTIONAL MATCH (s)-[:HAS_FORMULA]->(f:Formula)
+                RETURN s, f AS formula
+                ORDER BY s.name
+            ";
             $res = $this->neo4j->runCypher($cypher);
             if ($res['success'] && !empty($res['data']['data'])) {
                 foreach ($res['data']['data'] as $row) {
                     $shape = $row['row'][0];
-                    $shape['grades'] = self::getShapeGrades($shape['id'] ?? '');
+                    $shapeId = $shape['id'] ?? '';
+                    $fallbackFormula = $this->fallbackData['shapes'][$shapeId]['formula'] ?? [];
+                    $neoFormula = (isset($row['row'][1]) && is_array($row['row'][1])) ? array_filter($row['row'][1]) : [];
+                    $shape['formula'] = array_merge($fallbackFormula, $neoFormula);
+                    $shape['grades'] = self::getShapeGrades($shapeId);
                     $shape['grade_text'] = 'Toán Lớp ' . implode(', ', $shape['grades']);
                     $shapes[] = $shape;
                 }
@@ -107,7 +116,9 @@ class GeometryModel
                 $row = $res['data']['data'][0]['row'];
                 $shape = $row[0];
                 $shape['properties'] = $row[1] ?? [];
-                $shape['formula'] = $row[2] ?? [];
+                $fallbackFormula = $this->fallbackData['shapes'][$id]['formula'] ?? [];
+                $neoFormula = (isset($row[2]) && is_array($row[2])) ? array_filter($row[2]) : [];
+                $shape['formula'] = array_merge($fallbackFormula, $neoFormula);
                 $shape['ancestors'] = $row[3] ?? [];
                 $shape['descendants'] = $row[4] ?? [];
                 return $shape;
