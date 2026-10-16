@@ -49,7 +49,10 @@ $model = new GeometryModel();
                     <p>Mô hình hóa chuẩn theo sơ đồ của giảng viên. Nhấp chuột vào từng node để xem chi tiết thông số.</p>
                 </div>
             </div>
-            <div class="graph-controls">
+            <div class="graph-controls" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" id="btn-toggle-rels" class="btn btn-sm btn-secondary" onclick="toggleGraphMode()" title="Chuyển đổi giữa Cây Tiến Hóa chuẩn và Toàn bộ quan hệ NoSQL (kèm SPECIAL_CASE_OF)">
+                    <span id="btn-toggle-rels-icon">🔗</span> <span id="btn-toggle-rels-text">Hiện Quan Hệ Ngược (Special Case)</span>
+                </button>
                 <button id="btn-fit-graph" class="btn btn-sm btn-secondary">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m12 8 4 4-4 4M8 12h8"/></svg>
                     Căn giữa

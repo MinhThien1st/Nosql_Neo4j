@@ -123,14 +123,15 @@ class GeometryModel
     /**
      * Lấy dữ liệu đồ thị cho Vis.js vẽ sơ đồ phả hệ trực quan
      */
-    public function getGraphData()
+    public function getGraphData($includeSpecial = false)
     {
         if ($this->isLiveNeo4j()) {
+            $relFilter = $includeSpecial ? ":INCLUDES|EVOLVES_TO|SPECIAL_CASE_OF" : ":INCLUDES|EVOLVES_TO";
             $cypher = "
-                MATCH (s1)-[r]->(s2)
+                MATCH (s1)-[r{$relFilter}]->(s2)
                 WHERE (s1:Category OR s1:Shape) AND (s2:Shape)
                 RETURN s1.id AS source_id, s1.name AS source_name, labels(s1)[0] AS source_label,
-                       type(r) AS rel_type, r.condition AS condition,
+                       type(r) AS rel_type, r.condition AS condition, r.detail AS detail,
                        s2.id AS target_id, s2.name AS target_name, labels(s2)[0] AS target_label,
                        s2.color AS target_color
             ";
@@ -140,6 +141,20 @@ class GeometryModel
                 $edges = [];
                 $nodeMap = [];
 
+                // Thứ tự ưu tiên sắp xếp từ trên xuống dưới và từ trái sang phải
+                $priorityMap = [
+                    'hinh_hoc_phang' => 0,
+                    'tu_giac' => 1,
+                    'hinh_thang' => 2,
+                    'hinh_binh_hanh' => 3,
+                    'hinh_dieu' => 4,
+                    'hinh_thang_vuong' => 5,
+                    'hinh_thang_can' => 6,
+                    'hinh_chu_nhat' => 7,
+                    'hinh_thoi' => 8,
+                    'hinh_vuong' => 9
+                ];
+
                 foreach ($res['data']['data'] as $row) {
                     $r = $row['row'];
                     $srcId = $r[0];
@@ -147,10 +162,11 @@ class GeometryModel
                     $srcLabel = $r[2];
                     $relType = $r[3];
                     $condition = $r[4] ?? '';
-                    $dstId = $r[5];
-                    $dstName = $r[6];
-                    $dstLabel = $r[7];
-                    $dstColor = $r[8] ?? '#2563EB';
+                    $detail = $r[5] ?? '';
+                    $dstId = $r[6];
+                    $dstName = $r[7];
+                    $dstLabel = $r[8];
+                    $dstColor = $r[9] ?? '#2563EB';
 
                     if (!isset($nodeMap[$srcId])) {
                         $nodeMap[$srcId] = true;
@@ -159,7 +175,8 @@ class GeometryModel
                             'label' => $srcName,
                             'group' => $srcLabel,
                             'shape' => 'box',
-                            'color' => ($srcLabel === 'Category') ? '#334155' : '#0284C7'
+                            'color' => ($srcLabel === 'Category') ? '#0F172A' : '#0284C7',
+                            'priority' => $priorityMap[$srcId] ?? 99
                         ];
                     }
 
@@ -170,19 +187,25 @@ class GeometryModel
                             'label' => $dstName,
                             'group' => $dstLabel,
                             'shape' => 'box',
-                            'color' => $dstColor
+                            'color' => $dstColor,
+                            'priority' => $priorityMap[$dstId] ?? 99
                         ];
                     }
 
+                    $friendlyLabel = $condition ?: ($relType === 'SPECIAL_CASE_OF' ? 'Là trường hợp đặc biệt' : $relType);
                     $edges[] = [
                         'from' => $srcId,
                         'to' => $dstId,
-                        'label' => $condition ?: $relType,
-                        'arrows' => 'to'
+                        'label' => $friendlyLabel,
+                        'detail' => $detail ?: $friendlyLabel,
+                        'rel_type' => $relType
                     ];
                 }
 
                 if (!empty($nodes)) {
+                    usort($nodes, function($a, $b) {
+                        return ($a['priority'] ?? 99) <=> ($b['priority'] ?? 99);
+                    });
                     return ['nodes' => $nodes, 'edges' => $edges];
                 }
             }
@@ -696,24 +719,29 @@ class GeometryModel
             ],
             'graph' => [
                 'nodes' => [
-                    ['id' => 'hinh_hoc_phang', 'label' => "Hình học phẳng", 'shape' => 'box', 'color' => '#1E293B'],
+                    ['id' => 'hinh_hoc_phang', 'label' => "Hình học phẳng", 'shape' => 'box', 'color' => '#0F172A'],
                     ['id' => 'tu_giac', 'label' => "Tứ giác", 'shape' => 'box', 'color' => '#0284C7'],
                     ['id' => 'hinh_thang', 'label' => "Hình thang", 'shape' => 'box', 'color' => '#0EA5E9'],
-                    ['id' => 'hinh_dieu', 'label' => "Hình diều", 'shape' => 'box', 'color' => '#EA580C'],
-                    ['id' => 'hinh_binh_hanh', 'label' => "Hình bình hành", 'shape' => 'box', 'color' => '#0284C7'],
+                    ['id' => 'hinh_binh_hanh', 'label' => "Hình bình hành", 'shape' => 'box', 'color' => '#2563EB'],
+                    ['id' => 'hinh_dieu', 'label' => "Hình diều", 'shape' => 'box', 'color' => '#F97316'],
+                    ['id' => 'hinh_thang_vuong', 'label' => "Hình thang vuông", 'shape' => 'box', 'color' => '#06B6D4'],
+                    ['id' => 'hinh_thang_can', 'label' => "Hình thang cân", 'shape' => 'box', 'color' => '#14B8A6'],
                     ['id' => 'hinh_chu_nhat', 'label' => "Hình chữ nhật", 'shape' => 'box', 'color' => '#059669'],
                     ['id' => 'hinh_thoi', 'label' => "Hình thoi", 'shape' => 'box', 'color' => '#0D9488'],
                     ['id' => 'hinh_vuong', 'label' => "Hình vuông", 'shape' => 'box', 'color' => '#DB2777']
                 ],
                 'edges' => [
-                    ['from' => 'hinh_hoc_phang', 'to' => 'tu_giac', 'label' => '4 cạnh, 4 đỉnh, 4 góc, tổng = 360°'],
-                    ['from' => 'tu_giac', 'to' => 'hinh_thang', 'label' => 'Có một cặp cạnh đối song song'],
-                    ['from' => 'tu_giac', 'to' => 'hinh_dieu', 'label' => 'Có 2 cặp cạnh kề nhau bằng nhau'],
-                    ['from' => 'tu_giac', 'to' => 'hinh_binh_hanh', 'label' => 'Hai cặp cạnh đối song song & bằng nhau'],
-                    ['from' => 'hinh_binh_hanh', 'to' => 'hinh_chu_nhat', 'label' => 'Có 4 góc vuông; 2 đường chéo bằng nhau'],
-                    ['from' => 'hinh_binh_hanh', 'to' => 'hinh_thoi', 'label' => '4 cạnh bằng nhau; 2 đường chéo vuông góc'],
-                    ['from' => 'hinh_chu_nhat', 'to' => 'hinh_vuong', 'label' => '4 cạnh bằng nhau'],
-                    ['from' => 'hinh_thoi', 'to' => 'hinh_vuong', 'label' => 'Có 4 góc vuông']
+                    ['from' => 'hinh_hoc_phang', 'to' => 'tu_giac', 'label' => '4 cạnh khép kín, tổng = 360°', 'detail' => 'Có 4 cạnh, 4 đỉnh, 4 góc; tổng 4 góc bằng 360°'],
+                    ['from' => 'tu_giac', 'to' => 'hinh_thang', 'label' => '1 cặp cạnh đối song song', 'detail' => 'Có một cặp cạnh đối diện song song'],
+                    ['from' => 'tu_giac', 'to' => 'hinh_binh_hanh', 'label' => 'Các cạnh đối // & bằng nhau', 'detail' => 'Hai cặp cạnh đối song song và bằng nhau; góc đối bằng nhau'],
+                    ['from' => 'tu_giac', 'to' => 'hinh_dieu', 'label' => '2 cặp cạnh kề bằng nhau', 'detail' => 'Có 2 cặp cạnh kề nhau bằng nhau từng đôi một'],
+                    ['from' => 'hinh_thang', 'to' => 'hinh_thang_vuong', 'label' => 'Có 1 góc vuông (90°)', 'detail' => 'Hình thang có thêm 1 góc vuông trở thành Hình thang vuông'],
+                    ['from' => 'hinh_thang', 'to' => 'hinh_thang_can', 'label' => '2 góc kề 1 đáy bằng nhau', 'detail' => 'Hai góc kề một đáy bằng nhau hoặc hai đường chéo bằng nhau'],
+                    ['from' => 'hinh_binh_hanh', 'to' => 'hinh_chu_nhat', 'label' => 'Có 1 góc vuông (hoặc 2 đ.chéo =)', 'detail' => 'Có 4 góc vuông hoặc 1 góc vuông; hai đường chéo bằng nhau'],
+                    ['from' => 'hinh_binh_hanh', 'to' => 'hinh_thoi', 'label' => '4 cạnh = (hoặc 2 đ.chéo ⊥)', 'detail' => '4 cạnh bằng nhau; hai đường chéo vuông góc'],
+                    ['from' => 'hinh_dieu', 'to' => 'hinh_thoi', 'label' => '4 cạnh bằng nhau', 'detail' => 'Hình diều khi cả 4 cạnh đều bằng nhau sẽ trở thành Hình thoi'],
+                    ['from' => 'hinh_chu_nhat', 'to' => 'hinh_vuong', 'label' => '4 cạnh = (hoặc 2 đ.chéo ⊥)', 'detail' => '4 cạnh bằng nhau; hai đường chéo vuông góc (hoặc 2 cạnh kề bằng nhau)'],
+                    ['from' => 'hinh_thoi', 'to' => 'hinh_vuong', 'label' => 'Có 1 góc vuông (hoặc 2 đ.chéo =)', 'detail' => 'Có 4 góc vuông (hoặc 1 góc vuông; hai đường chéo bằng nhau)']
                 ]
             ]
         ];

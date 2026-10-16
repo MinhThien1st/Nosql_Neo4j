@@ -17,10 +17,12 @@ $neo4j = Neo4jService::getInstance();
 
 switch ($action) {
     case 'get_graph':
-        $graph = $model->getGraphData();
+        $mode = $_GET['mode'] ?? 'evolution';
+        $graph = $model->getGraphData($mode === 'all');
         echo json_encode([
             'success' => true,
             'is_live' => $model->isLiveNeo4j(),
+            'mode' => $mode,
             'data' => $graph
         ]);
         break;
